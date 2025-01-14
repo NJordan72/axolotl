@@ -46,14 +46,10 @@ class ChatTemplatePrompter(Prompter):
             }
 
         # Default optional fields, kept for compatibility
-        self._default_optional_fields = [
-            "tool_calls",
-            "name",
-            "tool_call_id"
-        ]
+        self._default_optional_fields = ["tool_calls", "name", "tool_call_id"]
 
-        self.optional_message_fields = (
-            self._default_optional_fields + (optional_message_fields or [])
+        self.optional_message_fields = self._default_optional_fields + (
+            optional_message_fields or []
         )
 
         self.message_field_role = message_field_role
@@ -232,7 +228,7 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
     def messages(self, messages):
         self._messages = messages
 
-    def tokenize_prompt(self, prompt: dict):
+    def tokenize_prompt(self, prompt):
         # Old simple legacy behavior that works reliably.
         if (
             not self.roles_to_train
@@ -434,7 +430,7 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
 
         return start_idx, end_idx
 
-    def get_conversation_thread(self, prompt: dict):
+    def get_conversation_thread(self, prompt):
         turns = []
 
         for message in prompt[self.messages]:
@@ -464,7 +460,7 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
 
         return turns
 
-    def get_images(self, prompt: dict):
+    def get_images(self, prompt):
         return prompt.get(self.images, None)
 
 
