@@ -15,6 +15,7 @@ from pydantic import (
     Field,
     StringConstraints,
     conlist,
+    field_serializer,
     field_validator,
     model_validator,
 )
@@ -685,8 +686,8 @@ class AxolotlInputConfig(
         bool
     ] = None  # whether to use weighting in DPO trainer. If none, default is false in the trainer.
 
-    datasets: Optional[conlist(Union[SFTDataset, DPODataset, KTODataset], min_length=1)] = None  # type: ignore
-    test_datasets: Optional[conlist(Union[SFTDataset, DPODataset, KTODataset], min_length=1)] = None  # type: ignore
+    datasets: Optional[conlist(DatasetConfig, min_length=1)] = None  # type: ignore
+    test_datasets: Optional[conlist(DatasetConfig, min_length=1)] = None  # type: ignore
     shuffle_merged_datasets: Optional[bool] = True
     dataset_prepared_path: Optional[str] = None
     dataset_shard_num: Optional[int] = None
@@ -905,6 +906,14 @@ class AxolotlInputConfig(
                 )
 
         return datasets
+
+    @field_serializer("datasets")
+    def datasets_serializer(
+        self, ds_configs: Optional[List[DatasetConfig]]
+    ) -> Optional[List[Dict[str, Any]]]:
+        if ds_configs:
+            return [ds_config.model_dump() for ds_config in ds_configs]
+        return None
 
     @model_validator(mode="before")
     @classmethod
