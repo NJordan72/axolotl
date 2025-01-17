@@ -494,23 +494,30 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
 
 def load(tokenizer, cfg, ds_cfg: Optional[Dict[str, Any]] = None, processor=None):
     # pylint: disable=duplicate-code
-    ds_cfg = ds_cfg or {}
+    if ds_cfg is None:
+        dataset_config = {}
+    elif hasattr(ds_cfg, "model_dump"):  # Pydantic v2
+        dataset_config = ds_cfg.model_dump()
+    elif hasattr(ds_cfg, "dict"):  # Pydantic v1
+        dataset_config = ds_cfg.dict()
     chat_template_string = get_chat_template_from_config(
-        cfg=cfg, ds_cfg=ds_cfg, tokenizer=tokenizer
+        cfg=cfg, ds_cfg=dataset_config, tokenizer=tokenizer
     )
     LOG.info(f"Using chat template:\n---\n{chat_template_string!s}\n---")
 
     prompter_params = {
         "tokenizer": tokenizer,
         "chat_template": chat_template_string,
-        "message_property_mappings": ds_cfg.get("message_property_mappings", {}),
-        "message_field_training": ds_cfg.get("message_field_training", None),
-        "message_field_training_detail": ds_cfg.get(
+        "message_property_mappings": dataset_config.get(
+            "message_property_mappings", {}
+        ),
+        "message_field_training": dataset_config.get("message_field_training", None),
+        "message_field_training_detail": dataset_config.get(
             "message_field_training_detail",
             None,
         ),
-        "roles": ds_cfg.get("roles"),
-        "drop_system_message": ds_cfg.get("drop_system_message", False),
+        "roles": dataset_config.get("roles"),
+        "drop_system_message": dataset_config.get("drop_system_message", False),
         # we need to add one for detecting sequences with exceeding the `sequence_len` limit.
         "max_length": cfg.sequence_len + 1,
         "processor": processor,
@@ -519,15 +526,15 @@ def load(tokenizer, cfg, ds_cfg: Optional[Dict[str, Any]] = None, processor=None
     strategy_params = {
         "train_on_inputs": cfg.train_on_inputs,
         "sequence_len": cfg.sequence_len,
-        "roles_to_train": ds_cfg.get("roles_to_train", ["assistant"]),
-        "train_on_eos": ds_cfg.get("train_on_eos", "turn"),
+        "roles_to_train": dataset_config.get("roles_to_train", ["assistant"]),
+        "train_on_eos": dataset_config.get("train_on_eos", "turn"),
     }
 
     strategy = ChatTemplateStrategy(
         ChatTemplatePrompter(**prompter_params), tokenizer=tokenizer, **strategy_params
     )
 
-    if "field_messages" in ds_cfg and hasattr(strategy, "messages"):
-        strategy.messages = ds_cfg["field_messages"]
+    if "field_messages" in dataset_config and hasattr(strategy, "messages"):
+        strategy.messages = dataset_config["field_messages"]
 
     return strategy
