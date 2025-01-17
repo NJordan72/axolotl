@@ -3,7 +3,7 @@ HF Chat Templates prompt strategy
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 from transformers import ProcessorMixin
 
@@ -11,6 +11,7 @@ from axolotl.prompt_strategies.jinja_template_analyzer import JinjaTemplateAnaly
 from axolotl.prompt_tokenizers import PromptTokenizingStrategy
 from axolotl.prompters import IGNORE_TOKEN_ID, Prompter
 from axolotl.utils.chat_templates import get_chat_template_from_config
+from axolotl.utils.config.models.input.v0_4_1 import DatasetConfig
 
 # Configure the logger
 LOG = logging.getLogger("axolotl")
@@ -492,12 +493,18 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
         return prompt.get(self.images, None)
 
 
-def load(tokenizer, cfg, ds_cfg: Optional[Dict[str, Any]] = None, processor=None):
-    # pylint: disable=duplicate-code
-    if ds_cfg is None:
-        dataset_config = {}
-    elif hasattr(ds_cfg, "model_dump"):
-        dataset_config = ds_cfg.model_dump()
+def load(
+    tokenizer,
+    cfg,
+    ds_cfg: Optional[Union[Dict[str, Any], DatasetConfig]] = None,
+    processor=None,
+):
+    dataset_config: Dict[str, Any] = {}
+    if ds_cfg and hasattr(ds_cfg, "model_dump"):
+        if callable(getattr(ds_cfg, "model_dump", None)):
+            dataset_config = ds_cfg.model_dump(exclude_none=True)
+        else:
+            dataset_config = dict(ds_cfg)
     chat_template_string = get_chat_template_from_config(
         cfg=cfg, ds_cfg=dataset_config, tokenizer=tokenizer
     )
