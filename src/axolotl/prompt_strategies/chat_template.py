@@ -496,10 +496,8 @@ def load(tokenizer, cfg, ds_cfg: Optional[Dict[str, Any]] = None, processor=None
     # pylint: disable=duplicate-code
     if ds_cfg is None:
         dataset_config = {}
-    elif hasattr(ds_cfg, "model_dump"):  # Pydantic v2
+    elif hasattr(ds_cfg, "model_dump"):
         dataset_config = ds_cfg.model_dump()
-    elif hasattr(ds_cfg, "dict"):  # Pydantic v1
-        dataset_config = ds_cfg.dict()
     chat_template_string = get_chat_template_from_config(
         cfg=cfg, ds_cfg=dataset_config, tokenizer=tokenizer
     )
