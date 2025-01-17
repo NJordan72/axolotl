@@ -250,7 +250,7 @@ def validate_config(
     cfg: DictDefault,
     capabilities: Optional[dict] = None,
     env_capabilities: Optional[dict] = None,
-):
+) -> DictDefault:
     AxolotlConfigWCapabilities = AxolotlConfigWCapabilitiesBase
     AxolotlInputConfig = AxolotlInputConfigBase
 
