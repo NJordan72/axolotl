@@ -29,6 +29,7 @@ class ChatTemplatePrompter(Prompter):
         message_property_mappings: Optional[Dict[str, str]] = None,
         message_field_training: Optional[str] = None,
         message_field_training_detail: Optional[str] = None,
+        messages_array_name: str = "messages",
         roles: Optional[Dict[str, List[str]]] = None,
         drop_system_message: bool = False,
     ):
@@ -45,7 +46,7 @@ class ChatTemplatePrompter(Prompter):
             }
 
         self._chat_template_msg_variables = self.get_chat_template_msg_variables(
-            chat_template
+            chat_template, messages_array_name
         )
         self.message_property_mappings = message_property_mappings
         self.message_field_training = message_field_training
@@ -190,7 +191,7 @@ class ChatTemplatePrompter(Prompter):
         return adjusted_details
 
     def get_chat_template_msg_variables(
-        self, chat_template: str, messages_array_name: str = "messages"
+        self, chat_template: str, messages_array_name: str
     ) -> Set[str]:
         template_analyzer = JinjaTemplateAnalyzer(chat_template)
         return template_analyzer.get_message_vars(messages_array_name)
@@ -513,6 +514,7 @@ def load(
             "message_field_training_detail",
             None,
         ),
+        "messages_array_name": dataset_config.get("field_messages", "messages"),
         "roles": dataset_config.get("roles"),
         "drop_system_message": dataset_config.get("drop_system_message", False),
         # we need to add one for detecting sequences with exceeding the `sequence_len` limit.
