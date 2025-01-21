@@ -21,13 +21,14 @@ from huggingface_hub.errors import HFValidationError
 from pydantic import BaseModel, Discriminator, Field, ValidationInfo, field_validator
 
 FileType = Literal["parquet", "arrow", "csv", "text", "json"]
+StorageBackend = Literal["gcs", "s3", "hf_hub", "local"]
 
 
 # Storage Configuration
 class BaseStorageConfig(BaseModel):
     """Common fields for all storage configs."""
 
-    storage_backend: str  # Discriminator for storage backends
+    storage_backend: StorageBackend  # Discriminator for storage backends
     file_type: Optional[FileType] = Field(validation_alias="ds_type", default=None)
     path: str
     data_files: Optional[
@@ -97,7 +98,18 @@ class S3StorageConfig(BaseStorageConfig):
     storage_backend: Literal["s3"] = "s3"
 
 
-def _get_storage_backend(v: Any) -> str:
+class LocalStorageConfig(BaseStorageConfig):
+    """
+    Configuration for datasets stored locally.
+
+    Attributes:
+        storage_backend: Fixed as "local" to identify local storage
+    """
+
+    storage_backend: Literal["local"] = "local"
+
+
+def _get_storage_backend(v: Any) -> StorageBackend:
     """
     Determine the storage backend based on the dataset path.
 
