@@ -442,8 +442,6 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
         turns = []
         for message in prompt[self.messages]:
             transformed_message = self.transform_message(message)
-            LOG.warning(f"Message: {message}")
-            LOG.warning(f"Transformed message: {transformed_message}")
 
             turn = {
                 **transformed_message,
