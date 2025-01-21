@@ -16,7 +16,13 @@ Available config models:
 from pathlib import Path
 from typing import Annotated, Any, Dict, Literal, Mapping, Optional, Sequence, Union
 
-from datasets import load_dataset
+from datasets import (
+    Dataset,
+    DatasetDict,
+    IterableDataset,
+    IterableDatasetDict,
+    load_dataset,
+)
 from huggingface_hub.errors import HFValidationError
 from pydantic import (
     BaseModel,
@@ -43,6 +49,12 @@ class BaseStorageConfig(BaseModel):
     name: Optional[str] = None
 
     model_config = {"validate_assignment": True}
+
+    def load(
+        self,
+    ) -> Union[DatasetDict | Dataset | IterableDatasetDict | IterableDataset]:
+        """Base load method that should be implemented by subclasses."""
+        raise NotImplementedError("Subclasses must implement load()")
 
     @field_validator("file_type", mode="after")
     @classmethod
@@ -86,6 +98,25 @@ class HuggingFaceStorageConfig(BaseStorageConfig):
     trust_remote_code: bool = False
     use_auth_token: bool = False
 
+    def load(
+        self,
+    ) -> Union[DatasetDict | Dataset | IterableDatasetDict | IterableDataset]:
+        """Load dataset from Hugging Face Hub."""
+        load_ds_kwargs = {}
+        if hasattr(self, "split"):
+            load_ds_kwargs["split"] = self.split
+
+        return load_dataset(
+            self.path,
+            name=self.name,
+            streaming=False,
+            data_files=self.data_files,
+            token=self.use_auth_token,
+            revision=self.revision,
+            trust_remote_code=self.trust_remote_code,
+            **load_ds_kwargs,
+        )
+
 
 class GCSStorageConfig(BaseStorageConfig):
     """
@@ -96,6 +127,11 @@ class GCSStorageConfig(BaseStorageConfig):
     """
 
     storage_backend: Literal["gcs"] = "gcs"
+
+    def load(
+        self,
+    ) -> Union[DatasetDict | Dataset | IterableDatasetDict | IterableDataset]:
+        raise NotImplementedError("TODO")
 
 
 class S3StorageConfig(BaseStorageConfig):
@@ -108,6 +144,11 @@ class S3StorageConfig(BaseStorageConfig):
 
     storage_backend: Literal["s3"] = "s3"
 
+    def load(
+        self,
+    ) -> Union[DatasetDict | Dataset | IterableDatasetDict | IterableDataset]:
+        raise NotImplementedError("TODO")
+
 
 class LocalStorageConfig(BaseStorageConfig):
     """
@@ -118,6 +159,11 @@ class LocalStorageConfig(BaseStorageConfig):
     """
 
     storage_backend: Literal["local"] = "local"
+
+    def load(
+        self,
+    ) -> Union[DatasetDict | Dataset | IterableDatasetDict | IterableDataset]:
+        raise NotImplementedError("TODO")
 
 
 def _get_storage_backend(v: Any) -> StorageBackend:
