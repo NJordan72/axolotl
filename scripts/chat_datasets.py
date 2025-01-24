@@ -31,6 +31,7 @@ def parse_dataset(dataset=None, split="train"):
     ds_cfg["field_messages"] = field_messages
 
     message_fields = features[field_messages][0].keys()
+
     message_property_mappings = {'role': None, 'content': None}
     for key in ["from", "role"]:
         if key in message_fields:
