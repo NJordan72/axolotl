@@ -26,7 +26,9 @@ from axolotl.utils.config.models.input.v0_4_1 import (
 )
 
 
-def merge_input_args():
+def merge_input_args() -> (
+    tuple[type[AxolotlConfigWCapabilitiesBase], type[AxolotlInputConfigBase]]
+):
     """
     Merges input arguments from registered plugins with the base configurations.
 

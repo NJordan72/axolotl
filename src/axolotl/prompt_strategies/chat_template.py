@@ -227,7 +227,7 @@ class ChatTemplateStrategy(PromptTokenizingStrategy):
         self.images = "images"
 
         LOG.info(
-            f"The chat template uses the following properites on the message: {self.prompter.chat_template_msg_variables}"
+            f"The chat template uses the following properites on the message: {prompter.chat_template_msg_variables}"
         )
 
     @property
@@ -560,17 +560,21 @@ class StrategyLoader:
         prompter_params = {
             "tokenizer": tokenizer,
             "chat_template": chat_template_string,
-            "message_field_role": ds_cfg.get("message_field_role", "role"),
-            "message_field_content": ds_cfg.get("message_field_content", "content"),
+            "message_property_mappings": ds_cfg.get(
+                "message_property_mappings",
+                {
+                    "role": "role",
+                    "content": "content",
+                },
+            ),
             "message_field_training": ds_cfg.get("message_field_training", None),
             "message_field_training_detail": ds_cfg.get(
                 "message_field_training_detail",
                 None,
             ),
-            "messages_array_name": dataset_config.get("field_messages", "messages"),
-        "roles": ds_cfg.get("roles"),
+            "messages_array_name": ds_cfg.get("field_messages", "messages"),
+            "roles": ds_cfg.get("roles"),
             "drop_system_message": ds_cfg.get("drop_system_message", False),
-        "optional_message_fields": ds_cfg.get("optional_message_fields", []),
             # we need to add one for detecting sequences with exceeding the `sequence_len` limit.
             "max_length": cfg.sequence_len + 1,
             "processor": processor,
