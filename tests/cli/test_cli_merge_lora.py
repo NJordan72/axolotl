@@ -55,3 +55,15 @@ def test_merge_lora_nonexistent_lora_dir(cli_runner, config_path, tmp_path):
         cli, ["merge-lora", str(config_path), "--lora-model-dir", str(lora_dir)]
     )
     assert result.exit_code != 0
+
+
+def test_merge_lora_no_adapter(cli_runner, config_path, tmp_path):
+    """Test merge_lora fails when no adapter is specified in config"""
+    config_path = tmp_path / "config.yml"
+    lora_dir = tmp_path / "lora"
+    lora_dir.mkdir()
+    result = cli_runner.invoke(
+        cli, ["merge-lora", str(config_path), "--lora-model-dir", str(lora_dir)]
+    )
+    assert result.exit_code != 0
+    assert str(result.exception).startswith("No adapter found")

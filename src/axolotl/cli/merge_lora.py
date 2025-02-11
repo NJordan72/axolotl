@@ -82,6 +82,10 @@ def do_cli(config: Union[Path, str] = Path("examples/"), **kwargs) -> None:
         raise ValueError(
             f"Target directory for merge: `{parsed_cfg.lora_model_dir}` does not exist."
         )
+    if not parsed_cfg.adapter:
+        raise ValueError(
+            "No adapter found. Merge only applies when using a LoRA adapter."
+        )
 
     parsed_cfg.load_in_4bit = False
     parsed_cfg.load_in_8bit = False
